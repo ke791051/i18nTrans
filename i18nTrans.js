@@ -3,7 +3,7 @@ class I18nTrans {
     this.storage = {}
   }
   /**
-   * 
+   *
    * @param key It will got the data from storage by key
    */
   t (key) {
@@ -20,11 +20,11 @@ class I18nTrans {
   }
 
   /**
-   * 
+   *
    * @param Lang Language list, must be array or string type
-   * @param defaultLang Default language, if it got undefined, the default language must be first item in Language list   
+   * @param defaultLang Default language, if it got undefined, the default language must be first item in Language list
    * @param space Set namespace just be an identification, same as the file name, must be array or string type
-   * @param defaultSpace  Default space, if it got undefined, the default space must be first item in space list   
+   * @param defaultSpace  Default space, if it got undefined, the default space must be first item in space list
    * @param loadPath It can set different path for all of file, and this length must be same as space list length
    * @param defaultPath If it don't get path for files, set a path as a root, and it wiil get new file path for every files
    * @param loadAll Set true,it will load all of language in language list when call this function
@@ -43,7 +43,6 @@ class I18nTrans {
     let tmpDefaultSpace = ''
     let tmpLoadPath = []
     let tmpLoadAll = true
-    const tmpLibary = {}
 
     // set default setting
     // When lang got string type, it wiil be pass to an new array
@@ -52,7 +51,7 @@ class I18nTrans {
     } else if (typeof lang === 'object') {
       tmpLanguage = lang
     }
-    // When it not defaultLang undefined, the default language must be first item in Language list   
+    // When it not defaultLang undefined, the default language must be first item in Language list
     if (defaultLang === undefined) {
       tmpDefaultLanguage = tmpLanguage[0]
     } else {
@@ -64,7 +63,7 @@ class I18nTrans {
     } else if (typeof space === 'object') {
       tmpSpace = space
     }
-    // When it not defaultSpace undefined, the default space must be first item in space list   
+    // When it not defaultSpace undefined, the default space must be first item in space list
     if (defaultSpace === undefined) {
       tmpDefaultSpace = tmpSpace[0]
     } else {
@@ -81,6 +80,7 @@ class I18nTrans {
     } else if (typeof space === 'object') {
       tmpLoadPath = loadPath
     }
+
     // Set the languages and it will be load by this array, when tmpLoadAll is false, it will load only one language, same as default language
     let reLoadLang = []
     if (tmpLoadAll) {
@@ -88,29 +88,34 @@ class I18nTrans {
     } else {
       reLoadLang.push(tmpDefaultLanguage)
     }
+
     // Make a new promise
-    return new Promise((resolve, reject) => {
+    return await new Promise((async (resolve, reject) => {
+      const tmpLibary = {}
       // ForEach in reLoadLang array
-      reLoadLang.forEach((l) => {
-        const langLibary = {}
+      for (let rIndex = 0; rIndex < reLoadLang.length; rIndex++) {
+        const l = reLoadLang[rIndex]
         // ForEach in tmpLoadPath array
-        tmpLoadPath.forEach(async (Url, index) => {
+        for (let tIndex = 0; tIndex < tmpLoadPath.length; tIndex++) {
+          const url = tmpLoadPath[tIndex]
           // ReBuild the path with reLoadLang and tmpLoadPath
-          const load = new Request(Url.replace(':lang', l), { method: 'GET', cache: 'reload' })
-          let jsonData = ''
-          // Await function and fetch some data from path 
-          await fetch(load, { method: 'get' }).then((data) => {
-            // When fetch success 
+          const load = url.replace(':lang', l)
+          // Await function and fetch some data from path
+          const data = await(await fetch(load, { method: 'get' }).then(data => {
+            // When fetch success
             if (data.ok) {
               // Get the json data
-              data.json().then((json) => {
-                jsonData = json
-                resolve(jsonData)
-              })
-            // When fetch failed 
+              return data.json();
+            // When fetch failed
             } else {
               reject(new Error(`status: ${data.status} statusText: ${data.statusText}`))
             }
+<<<<<<< HEAD
+          }))
+          tmpLibary[l] = data
+        }
+      }
+=======
           })
           const result = {}
           result[tmpSpace[index]] = jsonData
@@ -118,6 +123,7 @@ class I18nTrans {
         })
         tmpLibary[l] = langLibary
       })
+>>>>>>> 72e5479bfb33040eede4768dc6370c240a590dac
       // Save in storage
       this.storage = {
         Language: tmpLanguage,
@@ -128,7 +134,8 @@ class I18nTrans {
         LoadAll: tmpLoadAll,
         Libary: tmpLibary
       }
-    })
+      resolve(tmpLibary)
+    }).bind(this))
   }
 
   async import (lang = [],
@@ -175,7 +182,7 @@ class I18nTrans {
   }
 
   /**
-   * 
+   *
    * @param obj An library, and it will get the translate data from this
    * @param keyItem It will got the data from storage by keyitem
    */
@@ -191,4 +198,3 @@ class I18nTrans {
 // New a i18nTrans object and export it
 const i18nTrans = new I18nTrans()
 export default i18nTrans
-
