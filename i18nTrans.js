@@ -18,6 +18,7 @@ class I18nTrans {
     const value = this.getObjectValue(this.storage.Libary[lang], keyItem)
     return value
   }
+
   /**
    *
    * @param Lang Language list, must be array or string type
@@ -109,10 +110,20 @@ class I18nTrans {
             } else {
               reject(new Error(`status: ${data.status} statusText: ${data.statusText}`))
             }
+<<<<<<< HEAD
           }))
           tmpLibary[l] = data
         }
       }
+=======
+          })
+          const result = {}
+          result[tmpSpace[index]] = jsonData
+          Object.assign(langLibary, result)
+        })
+        tmpLibary[l] = langLibary
+      })
+>>>>>>> 72e5479bfb33040eede4768dc6370c240a590dac
       // Save in storage
       this.storage = {
         Language: tmpLanguage,
@@ -125,6 +136,49 @@ class I18nTrans {
       }
       resolve(tmpLibary)
     }).bind(this))
+  }
+
+  async import (lang = [],
+    space = [],
+    loadPath = []) {
+    const tmpLibary = {}
+
+    if (Object.getOwnPropertyNames(this.storage).length === 0) {
+      console.warn('The language storage is empty, please call init() first, and check your json file is existing')
+      return false
+    }
+    // Make a new promise
+    return new Promise(async (resolve, reject) => {
+      // ReBuild the path with reLoadLang and tmpLoadPath
+      const load = new Request(loadPath.replace(':lang', lang), { method: 'GET', cache: 'reload' })
+      let jsonData = ''
+      // Await function and fetch some data from path 
+      await fetch(load, { method: 'get' }).then((data) => {
+        // When fetch success 
+        if (data.ok) {
+          // Get the json data
+          data.json().then((json) => {
+            console.log(json)
+            jsonData = json
+            resolve(jsonData)
+          })
+          // When fetch failed 
+        } else {
+          reject(new Error(`status: ${data.status} statusText: ${data.statusText}`))
+        }
+      })
+      tmpLibary[lang] = jsonData
+      if (this.storage.Libary[lang] === undefined) {
+        Object.assign(this.storage.Libary, tmpLibary)
+        return false
+      }
+      if (this.storage.Libary[lang][space] === undefined) {
+        Object.assign(this.storage.Libary[lang], jsonData)
+      } else {
+        this.storage.Libary[lang] = jsonData
+      }
+      return false
+    })
   }
 
   /**
